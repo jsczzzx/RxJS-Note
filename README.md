@@ -11,16 +11,52 @@ const observable$ = new Observable<string>(subscriber => {
   setTimeout(() => subscriber.complete(), 6000);
 });
 
-const subscription = observable$.subscribe(value => console.log(value));
+//const subscription = observable$.subscribe(value => console.log(value));
 
-setTimeout(() => {
+observable$.subscribe({
+  next: value => console.log(value),
+  error: err => console.log(err.message),
+  complete: () => console.log('Completed')
+});
+
+/*setTimeout(() => {
   console.log('Unsubscribe');
   subscription.unsubscribe();
-}, 3000);
+}, 3000);*/
 ```
 
-## Hot vs Cold
+### Teardown
+```typescript
+import { Observable } from 'rxjs';
 
+// Create a custom observable
+const customInterval$ = new Observable(subscriber => {
+  // Set up the interval
+  const intervalId = setInterval(() => {
+    subscriber.next('Interval event');
+  }, 1000);
+
+  // Return a teardown function that clears the interval
+  return () => {
+    clearInterval(intervalId);
+    console.log('Interval cleared');
+  };
+});
+
+// Subscribe to the observable
+const subscription = customInterval$.subscribe({
+  next: value => console.log(value),
+  complete: () => console.log('Complete'),
+  error: err => console.error(err)
+});
+
+// Unsubscribe after 5 seconds to trigger teardown
+setTimeout(() => {
+  subscription.unsubscribe();
+  console.log('Unsubscribed');
+}, 5000);
+
+```
 
 ## Creation Functions
 
@@ -151,12 +187,149 @@ fromEvent(sliderInput, 'input').pipe(
 ### concatMap
 Projects each source value to an Observable which is merged in the output Observable, in a serialized fashion waiting for each one to complete before merging the next.
 
+![vpzm7ji2ttq5k558ynpp](https://github.com/user-attachments/assets/96d61d55-baa3-44aa-a955-ec503f0af3f4)
+
 ### switchMap
 Projects each source value to an Observable which is merged in the output Observable, emitting values only from the most recently projected Observable.
 
-
+![2xcccqp1v6cmk0kilgpa](https://github.com/user-attachments/assets/eda85eec-1e98-46a3-a84e-2677955ad4d4)
 
 ### mergeMap
 Projects each source value to an Observable which is merged in the output Observable.
 
-## Subjects
+![2xcccqp1v6cmk0kilgpa](https://github.com/user-attachments/assets/99268797-7bc7-4dc7-9dc1-1a5f86dd0a54)
+
+
+### exhasustMap
+Projects each source value to an Observable which is merged in the output Observable only if the previous projected Observable has completed.
+
+![larajwr99yeric3yrtbq](https://github.com/user-attachments/assets/e8042481-cf5a-4ca6-98aa-ba2239a8c049)
+
+
+### Analogy
+
+Let's compare all these operators with the handling of luggage at an airport. At this airport, there is only one conveyor belt to handle luggage. When an airplane arrives, all luggage is put on the conveyor belt so each traveler can retrieve their luggage.
+
+#### With mergeMap
+When an airplane arrives, the luggage is put on the conveyor belt, one after the other. When another airplane arrives as well, the luggage of that one is also put on the conveyor belt, merged with the luggage of the other airplane. So the conveyor belt will show a mix of luggage from the first and second airplane.
+
+#### With switchMap
+When an airplane arrives, the luggage is put on the conveyor belt, one after the other. But as soon as another airplane arrives, they stop putting any luggage from the previous airplane on the conveyor belt. They cancel any further luggage handling for that airplane and begin handling the luggage for the newly arrived airplane.
+
+#### With concatMap
+When an airplane arrives, the luggage is put on the conveyor belt, one after the other. When a new airplane arrives, all the luggage from the first airplane is put on the conveyor belt. Only when all that luggage is handled will the handling of the luggage on the second airplane start.
+
+#### With exhaustMap
+When an airplane arrives, the luggage is put on the conveyor belt, one after the other. When a new airplane arrives and the luggage of the first airplane is still handled, the luggage handling personnel simply ignores the second airplane. The luggage on the second airplane will not be handled.
+
+#### TLDR
+mergeMap: come in, merge, come out.
+
+switchMap: come in, merge, come out, but cancel when new ones come in.
+
+concatMap: come in, merge, come out, but maintain order.
+
+exhaustMap: come in, merge, come out, but while ongoing, ignore new ones when they come in.
+
+![image](https://github.com/user-attachments/assets/6cd8db15-1852-4d35-b7ea-f894e6e165cb)
+
+
+
+## Hot vs Cold
+### Cold Observables
+- Cold observables are "cold" because they start emitting items only when a subscriber subscribes to them.
+- Each subscriber gets its own independent execution of the observable sequence.
+- Example: of(1, 2, 3) or from([1, 2, 3]).
+
+### Hot Observables
+- Hot observables are "hot" because they begin emitting items immediately, regardless of whether there are any subscribers.
+- All subscribers share the same execution of the observable sequence.
+- Example: fromEvent(document, 'click'), Subject.
+
+## Subject
+An RxJS Subject is a special type of Observable that allows values to be multicasted to many Observers. While plain Observables are unicast (each subscribed Observer owns an independent execution of the Observable), Subjects are multicast.
+
+### Why Subject is Hot
+A Subject in RxJS is a hot observable because:
+
+- Shared Execution:
+
+When you subscribe to a Subject, you are subscribing to an already ongoing execution. All subscribers share the same instance of the subject and thus the same source of data.
+
+- Immediate Emission:
+
+A Subject can emit values even if no one is subscribed yet. These values will not be buffered for future subscribers; they will miss the values emitted before they subscribed.
+
+### Difference between Observables and Subjects
+#### Observable
+
+```typescript
+import { Observable } from 'rxjs';
+
+// Create a cold observable that emits a random value
+const coldObservable$ = new Observable(subscriber => {
+  const randomValue = Math.random();
+  subscriber.next(randomValue);
+  subscriber.complete();
+});
+
+// First subscriber
+coldObservable$.subscribe({
+  next: (v) => console.log(`Cold Observer A: ${v}`),
+  complete: () => console.log('Cold Observer A Complete')
+});
+
+// Second subscriber
+coldObservable$.subscribe({
+  next: (v) => console.log(`Cold Observer B: ${v}`),
+  complete: () => console.log('Cold Observer B Complete')
+});
+```
+
+Output:
+```less
+Cold Observer A: 0.123456789  (random value)
+Cold Observer A Complete
+Cold Observer B: 0.987654321  (another random value)
+Cold Observer B Complete
+```
+
+#### Subject
+```typescript
+import { Subject } from 'rxjs';
+
+const subject = new Subject();
+
+// Emit a random value
+const randomValue = Math.random();
+subject.next(randomValue);
+
+// First subscriber
+subject.subscribe({
+  next: (v) => console.log(`Hot Observer A: ${v}`),
+  complete: () => console.log('Hot Observer A Complete')
+});
+
+// Emit another random value
+const anotherRandomValue = Math.random();
+subject.next(anotherRandomValue);
+
+// Second subscriber
+subject.subscribe({
+  next: (v) => console.log(`Hot Observer B: ${v}`),
+  complete: () => console.log('Hot Observer B Complete')
+});
+
+// Emit another value
+const yetAnotherRandomValue = Math.random();
+subject.next(yetAnotherRandomValue);
+```
+
+Output:
+```less
+Hot Observer A: 0.123456789  (first random value)
+Hot Observer A: 0.987654321  (second random value)
+Hot Observer B: 0.987654321  (second random value)
+Hot Observer A: 0.567890123  (third random value)
+Hot Observer B: 0.567890123  (third random value)
+```

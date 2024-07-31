@@ -252,11 +252,11 @@ An RxJS Subject is a special type of Observable that allows values to be multica
 ### Why Subject is Hot
 A Subject in RxJS is a hot observable because:
 
-- Shared Execution:
+#### Shared Execution:
 
 When you subscribe to a Subject, you are subscribing to an already ongoing execution. All subscribers share the same instance of the subject and thus the same source of data.
 
-- Immediate Emission:
+#### Immediate Emission:
 
 A Subject can emit values even if no one is subscribed yet. These values will not be buffered for future subscribers; they will miss the values emitted before they subscribed.
 

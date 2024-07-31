@@ -24,6 +24,75 @@ setTimeout(() => {
 
 ## Creation Functions
 
+### of
+Converts the arguments to an observable sequence, each argument becomes a next notification.
+![image](https://github.com/user-attachments/assets/e9f0f6ff-4462-4c35-802f-cb7174cac273)
+
+```typescript
+import { of } from 'rxjs';
+ 
+of(10, 20, 30)
+  .subscribe({
+    next: value => console.log('next:', value),
+    error: err => console.log('error:', err),
+    complete: () => console.log('the end'),
+  });
+```
+
+### from
+Creates an Observable from an Array, an array-like object, a Promise, an iterable object, or an Observable-like object.
+
+![image](https://github.com/user-attachments/assets/4637d669-896e-44e7-9f27-2ae5859dbcb4)
+
+```typescript
+import { from } from 'rxjs';
+ 
+from([10, 20, 30])
+  .subscribe({
+    next: value => console.log('next:', value),
+    error: err => console.log('error:', err),
+    complete: () => console.log('the end'),
+  });
+```
+
+```typescript
+import { from } from "rxjs";
+
+const somePromise = new Promise((resolve, reject) => {
+  resolve('Resolved!');
+  //reject('Rejected!');
+});
+
+const observableFromPromise$ = from(somePromise);
+
+observableFromPromise$.subscribe({
+  next: value => console.log(value),
+  error: err => console.log('Error:', err),
+  complete: () => console.log('Completed')
+});
+```
+
+![image](https://github.com/user-attachments/assets/09b4c940-79c7-4ba4-a517-b0ecb3c2b36e)
+![image](https://github.com/user-attachments/assets/b222a9d4-1295-4d2a-808b-54e6219ffcd5)
+
+
+### fromEvent
+Creates an Observable that emits events of a specific type coming from the given event target.
+
+```typescript
+import { fromEvent, Observable } from 'rxjs';
+
+const triggerButton = document.querySelector('button#trigger');
+
+const subscription = fromEvent<MouseEvent>(triggerButton, 'click').subscribe(
+  (event) => console.log(event.type, event.x, event.y)
+);
+```
+
+![image](https://github.com/user-attachments/assets/878ed304-c983-489f-89e3-ef077e1dc818)
+
+
+###
 
 ## Pipeable Operators
 
@@ -80,10 +149,14 @@ fromEvent(sliderInput, 'input').pipe(
 ## Flattening Operators
 
 ### concatMap
+Projects each source value to an Observable which is merged in the output Observable, in a serialized fashion waiting for each one to complete before merging the next.
 
 ### switchMap
+Projects each source value to an Observable which is merged in the output Observable, emitting values only from the most recently projected Observable.
+
+
 
 ### mergeMap
-
+Projects each source value to an Observable which is merged in the output Observable.
 
 ## Subjects

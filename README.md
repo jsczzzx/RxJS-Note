@@ -200,7 +200,7 @@ Projects each source value to an Observable which is merged in the output Observ
 ![2xcccqp1v6cmk0kilgpa](https://github.com/user-attachments/assets/99268797-7bc7-4dc7-9dc1-1a5f86dd0a54)
 
 
-### exhasustMap
+### exhaustMap
 Projects each source value to an Observable which is merged in the output Observable only if the previous projected Observable has completed.
 
 ![larajwr99yeric3yrtbq](https://github.com/user-attachments/assets/e8042481-cf5a-4ca6-98aa-ba2239a8c049)

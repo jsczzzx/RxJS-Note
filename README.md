@@ -197,7 +197,7 @@ Projects each source value to an Observable which is merged in the output Observ
 ### mergeMap
 Projects each source value to an Observable which is merged in the output Observable.
 
-![image](https://github.com/user-attachments/assets/8bad5efb-11f0-4d48-8ba5-190701b8caad)
+![larajwr99yeric3yrtbq (1)](https://github.com/user-attachments/assets/5cbd7886-6704-40ab-98f8-728dfc891ee2)
 
 
 ### exhaustMap
